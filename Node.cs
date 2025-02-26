@@ -30,6 +30,7 @@ namespace CS_NEA_Interactive
 
         public Node(double[] _weights, double _learnRate)
         {
+            //sets learn rate and initialises weights
             learnRate = _learnRate;
             weights = _weights;
             totalWeight = 0;

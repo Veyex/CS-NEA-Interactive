@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -103,18 +104,20 @@ namespace CS_NEA_Interactive
             }
         }
 
-        //loops thru the training inputs at random until its done the requested number of epochs
-        //each loop it feeds the input thru the network then calculates all the errors and adjust weights accordingly
-        public void Train(List<double[]> trainingInputs, List<double[]> trainingOutputs, int epochs)
-        {
-            for (int i = 0; i < epochs; i++)
-            {
-                int choice = RNG.Next(trainingInputs.Count);
-                FeedForward(trainingInputs[choice]);
-                BackPropagate(trainingOutputs[choice]);
-                Console.WriteLine($"Epoch {i + 1} complete");
-            }
-        }
+        //deprecated function replaced with train better
+        ////loops thru the training inputs at random until its done the requested number of epochs
+        ////each loop it feeds the input thru the network then calculates all the errors and adjust weights accordingly
+        //public void Train(List<double[]> trainingInputs, List<double[]> trainingOutputs, int epochs)
+        //{
+        //    for (int i = 0; i < epochs; i++)
+        //    {
+        //        int choice = RNG.Next(trainingInputs.Count);
+        //        FeedForward(trainingInputs[choice]);
+        //        BackPropagate(trainingOutputs[choice]);
+        //        Console.WriteLine($"Epoch {i + 1} complete");
+        //    }
+        //}
+
 
         public void TrainBetter(List<double[]> trainingInputs, List<double[]> trainingOutputs, int epochs, Action<int> setImage)
         {
@@ -125,6 +128,11 @@ namespace CS_NEA_Interactive
 
                 while (trainingInputsTemp.Count > 0)
                 {
+                    //randomly selects image from training data array
+                    //then puts corresponding bitmap to picture box
+                    //feeds data forward thru the network then backpropagates
+                    //then removes image from array
+                    //all loops until all images have been used and resets for next epoch
                     int choice = RNG.Next(trainingInputsTemp.Count);
                     setImage(choice);
                     FeedForward(trainingInputsTemp[choice]);
@@ -132,48 +140,41 @@ namespace CS_NEA_Interactive
                     trainingInputsTemp.RemoveAt(choice);
                     trainingOutputsTemp.RemoveAt(choice);
                 }
-
-                //for (int j = 0; j < trainingInputsTemp.Count; j++)
-                //{
-                //    int choice = RNG.Next(trainingInputsTemp.Count);
-                //    FeedForward(trainingInputsTemp[choice]);
-                //    BackPropagate(trainingOutputsTemp[choice]);
-                //    trainingInputsTemp.RemoveAt(choice);
-                //    trainingOutputsTemp.RemoveAt(choice);
-                //}
                 Console.WriteLine($"Epoch {i + 1} complete");
             }
         }
 
-        public void OutputResults(List<double[]> trainingInputs, List<double[]> trainingOutputs)
-        {
-            for (int i = 0; i < trainingInputs.Count; i++)
-            {
-                double total = 0;
-                double[] outputs = FeedForward(trainingInputs[i]);
-                for (int j = 0; j < trainingInputs[i].Length; j++)
-                {
-                    Console.Write($"{trainingInputs[i][j]} ");
-                }
-                Console.Write("    ");
-                for (int j = 0; j < trainingOutputs[i].Length; j++)
-                {
-                    Console.Write($"{trainingOutputs[i][j]} ");
-                }
-                Console.Write("    ");
-                for (int j = 0; j < outputs.Length; j++)
-                {
-                    Console.Write($"{outputs[j]} ");
-                }
-                Console.Write($"    {outputs[0] - trainingOutputs[i][0]} ");
-                total += outputs[0] - trainingOutputs[i][0];
-                Console.WriteLine();
-                Console.WriteLine(total / trainingInputs.Count);
-            }
-        }
+        //deprecated function for testing in console only mode
+        //public void OutputResults(List<double[]> trainingInputs, List<double[]> trainingOutputs)
+        //{
+        //    for (int i = 0; i < trainingInputs.Count; i++)
+        //    {
+        //        double total = 0;
+        //        double[] outputs = FeedForward(trainingInputs[i]);
+        //        for (int j = 0; j < trainingInputs[i].Length; j++)
+        //        {
+        //            Console.Write($"{trainingInputs[i][j]} ");
+        //        }
+        //        Console.Write("    ");
+        //        for (int j = 0; j < trainingOutputs[i].Length; j++)
+        //        {
+        //            Console.Write($"{trainingOutputs[i][j]} ");
+        //        }
+        //        Console.Write("    ");
+        //        for (int j = 0; j < outputs.Length; j++)
+        //        {
+        //            Console.Write($"{outputs[j]} ");
+        //        }
+        //        Console.Write($"    {outputs[0] - trainingOutputs[i][0]} ");
+        //        total += outputs[0] - trainingOutputs[i][0];
+        //        Console.WriteLine();
+        //        Console.WriteLine(total / trainingInputs.Count);
+        //    }
+        //}
 
         public void AdjustLearnRate(double learnRate)
         {
+            //loops thru each node and changes the learn rate
             for (int i = 0; i < net.Length; ++i)
             {
                 for (int j = 0; j < net[i].Length; j++)
@@ -184,21 +185,22 @@ namespace CS_NEA_Interactive
         }
 
         //just shows how many layers there are and how many nodes in each (for debugging purposes)
-        public void PrintNetworkStructure()
-        {
-            for (int i = 0; i < net.Length; i++)
-            {
-                for (int j = 0; j < net[i].Length; j++)
-                {
-                    Console.Write("o ");
-                }
-                Console.WriteLine();
-            }
-            Console.WriteLine();
-        }
+        //public void PrintNetworkStructure()
+        //{
+        //    for (int i = 0; i < net.Length; i++)
+        //    {
+        //        for (int j = 0; j < net[i].Length; j++)
+        //        {
+        //            Console.Write("o ");
+        //        }
+        //        Console.WriteLine();
+        //    }
+        //    Console.WriteLine();
+        //}
 
         public void SaveNetworkToFile(string fileName)
         {
+            //writes layout then input length then learn rate to file
             StreamWriter sw = new StreamWriter($"{fileName}");
             string line = "";
             for (int i = 0; i < netLayout.Length; i++)
@@ -212,6 +214,7 @@ namespace CS_NEA_Interactive
             sw.WriteLine(line);
             sw.WriteLine(inputLength);
             sw.WriteLine(learnRate);
+            //then loops thru all nodes and writes weights to file
             for (int i = 0; i < net.Length; i++)
             {
 

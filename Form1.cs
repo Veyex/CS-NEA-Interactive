@@ -50,6 +50,8 @@ namespace CS_NEA_Interactive
 
         public Form1()
         {
+            //creates canvas and clears to white
+            //also sets up basic pen for drawing
             InitializeComponent();
 
             g = background.CreateGraphics();
@@ -93,9 +95,8 @@ namespace CS_NEA_Interactive
         {
             mouseDown = false;
 
+            //resizes image and copies to the input picture box
             resized = new Bitmap(image, new Size(28, 28));
-            //resized.Save(memory, ImageFormat.Bmp);
-            //MNISTDatasetInputPictureBox.Image = (Bitmap)Image.FromStream(memory);
             MNISTDatasetInputPictureBox.Image = resized;
         }
 
@@ -105,16 +106,17 @@ namespace CS_NEA_Interactive
             int count = 0;
             try
             {
+                //loops thru each pixel in the image and puts into an array
                 for (int x = 0; x < resized.Width; x++)
                 {
                     for (int y = 0; y < resized.Height; y++)
                     {
                         Color pixelColour = resized.GetPixel(y, x);
                         userInputArray[count] = 255 - pixelColour.R;
-                        //Console.WriteLine($"{count} {255 - pixelColour.R}");
                         count++;
                     }
                 }
+                //then passes the array thru the network and shows the outputs
                 if (mnistBinCheckbox.Checked)
                 {
                     double[] outputs = myNetwork.FeedForward(userInputArray);
@@ -133,16 +135,14 @@ namespace CS_NEA_Interactive
 
         private void reloadTrainingImagesButton_Click(object sender, EventArgs e)
         {
-            //turns input data from the training data csv into bitmap images
+            //turns input data from the training data csv into bitmap images for displaying
             StreamReader sr = new StreamReader("mnist_train.csv");
             int imageNum = 0; 
             sr.ReadLine();
             while (sr.EndOfStream == false)
             {
                 Console.WriteLine(imageNum);
-                //sr.ReadLine();
                 string[] line = sr.ReadLine().Split(',');
-                //double[] input = new double[line.Length - 1];
                 Bitmap trainingImage = new Bitmap(28, 28);
 
                 ////displays csv line data to console
@@ -302,6 +302,7 @@ namespace CS_NEA_Interactive
         {
             if (andGateCheckbox.Checked || xorGateCheckbox.Checked)
             {
+                //only four possible inputs for a logic gate
                 Console.WriteLine("inputs:");
                 Console.WriteLine("0 0");
                 Console.WriteLine("0 1");
@@ -320,6 +321,7 @@ namespace CS_NEA_Interactive
             }
             else if (mnistBinCheckbox.Checked)
             {
+                //selects random point in the testing data to start and feeds thru the ten proceding inputs
                 int startPoint = r.Next(testingInputs.Count-10);
                 Console.WriteLine("sample outputs:");
                 for (int i = startPoint; i < startPoint + 10; i++)
@@ -331,6 +333,7 @@ namespace CS_NEA_Interactive
             }
             else if (mnistQuadCheckbox.Checked)
             {
+                //selects random point in the testing data to start and feeds thru the ten proceding inputs
                 int startPoint = r.Next(testingInputs.Count - 10);
                 Console.WriteLine("sample outputs:");
                 for (int i = startPoint; i < startPoint + 10; i++)
@@ -344,6 +347,7 @@ namespace CS_NEA_Interactive
 
         private void saveNetworkButton_Click(object sender, EventArgs e)
         {
+            //if the network exists, passes file path to the save method
             if (myNetwork != null)
             {
                 myNetwork.SaveNetworkToFile(networkFilePathInput.Text);
@@ -354,6 +358,7 @@ namespace CS_NEA_Interactive
         {
             List<double[]> dataset = new List<double[]>();
             StreamReader sr;
+            //selects wanted csv file
             if (trainNotTest)
             {
                 sr = new StreamReader("mnist_train.csv");
@@ -363,8 +368,13 @@ namespace CS_NEA_Interactive
                 sr = new StreamReader("mnist_test.csv");
             }
             sr.ReadLine();
+            //loops thru every line of the csv
             while (!sr.EndOfStream)
             {
+                //each line has 785 values, the first tells you what number is being represented,
+                //the others correspond to the pixel values of the image (28x28 image means 784 pixels)
+                //only selects data corresponding to the numbers we want
+                //then adds the image file path and the pixel data
                 double[] arr = Array.ConvertAll(sr.ReadLine().Split(','), double.Parse);
                 if (arr[0] == 0 || arr[0] == 1)
                 {
@@ -388,6 +398,7 @@ namespace CS_NEA_Interactive
             }
             List<double[]> outputs = new List<double[]>();
             StreamReader sr;
+            //selects wanted csv file
             if (trainNotTest)
             {
                 sr = new StreamReader("mnist_train.csv");
@@ -397,8 +408,13 @@ namespace CS_NEA_Interactive
                 sr = new StreamReader("mnist_test.csv");
             }
             sr.ReadLine();
+            //loops thru every line of the csv
             while (!sr.EndOfStream)
             {
+                //each line has 785 values, the first tells you what number is being represented,
+                //the others correspond to the pixel values of the image (28x28 image means 784 pixels)
+                //only selects data corresponding to the numbers we want
+                //then adds the image file path and the output
                 double[] arr = Array.ConvertAll(sr.ReadLine().Split(','), double.Parse);
                 if (arr[0] == 0)
                 {
@@ -425,6 +441,7 @@ namespace CS_NEA_Interactive
         {
             List<double[]> dataset = new List<double[]>();
             StreamReader sr;
+            //selects wanted csv file
             if (trainNotTest)
             {
                 sr = new StreamReader("mnist_train.csv");
@@ -434,8 +451,13 @@ namespace CS_NEA_Interactive
                 sr = new StreamReader("mnist_test.csv");
             }
             sr.ReadLine();
+            //loops thru every line of the csv
             while (!sr.EndOfStream)
             {
+                //each line has 785 values, the first tells you what number is being represented,
+                //the others correspond to the pixel values of the image (28x28 image means 784 pixels)
+                //only selects data corresponding to the numbers we want
+                //then adds the image file path and the pixel data
                 double[] arr = Array.ConvertAll(sr.ReadLine().Split(','), double.Parse);
                 if (arr[0] == 0 || arr[0] == 1 || arr[0] == 2 || arr[0] == 3)
                 {
@@ -455,10 +477,12 @@ namespace CS_NEA_Interactive
             int count = 0;
             if (trainNotTest)
             {
+                // if training create new list for all the image locations
                 imageLocations = new List<string>();
             }
             List<double[]> outputs = new List<double[]>();
             StreamReader sr;
+            //selects corresponding csv file for training / testing
             if (trainNotTest)
             {
                 sr = new StreamReader("mnist_train.csv");
@@ -468,8 +492,13 @@ namespace CS_NEA_Interactive
                 sr = new StreamReader("mnist_test.csv");
             }
             sr.ReadLine();
+            //loops thru every line of the csv
             while (!sr.EndOfStream)
             {
+                //each line has 785 values, the first tells you what number is being represented,
+                //the others correspond to the pixel values of the image (28x28 image means 784 pixels)
+                //only selects data corresponding to the numbers we want
+                //then adds the image file path and the output
                 double[] arr = Array.ConvertAll(sr.ReadLine().Split(','), double.Parse);
                 if (arr[0] == 0)
                 {
@@ -508,6 +537,7 @@ namespace CS_NEA_Interactive
         {
             try
             {
+                //checks a network exists then changes the learn rate
                 if (myNetwork != null)
                 {
                     myNetwork.AdjustLearnRate(Convert.ToDouble(learnRateInput.Text));
@@ -519,6 +549,7 @@ namespace CS_NEA_Interactive
 
         public void setImage(int i)
         {
+            //for cycling through images when training
             MNISTDatasetInputPictureBox.Load($"D:/0.College/Computer Science/programs/CS-NEA-Interactive/bin/Debug/images/{imageLocations[i]}");
             MNISTDatasetInputPictureBox.Refresh();
         }
