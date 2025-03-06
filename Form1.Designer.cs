@@ -59,6 +59,9 @@
             this.epochsInput = new System.Windows.Forms.TextBox();
             this.saveNetworkButton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.sampleSizeTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.MNISTDatasetInputPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.createNewNetworkBackground)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.loadNetworkBackground)).BeginInit();
@@ -194,7 +197,7 @@
             // 
             // trainNetworkButton
             // 
-            this.trainNetworkButton.Location = new System.Drawing.Point(181, 239);
+            this.trainNetworkButton.Location = new System.Drawing.Point(181, 275);
             this.trainNetworkButton.Name = "trainNetworkButton";
             this.trainNetworkButton.Size = new System.Drawing.Size(127, 27);
             this.trainNetworkButton.TabIndex = 11;
@@ -243,9 +246,9 @@
             // 
             // networkTestButton
             // 
-            this.networkTestButton.Location = new System.Drawing.Point(181, 274);
+            this.networkTestButton.Location = new System.Drawing.Point(406, 292);
             this.networkTestButton.Name = "networkTestButton";
-            this.networkTestButton.Size = new System.Drawing.Size(127, 27);
+            this.networkTestButton.Size = new System.Drawing.Size(95, 27);
             this.networkTestButton.TabIndex = 16;
             this.networkTestButton.Text = "Test Network";
             this.networkTestButton.UseVisualStyleBackColor = true;
@@ -346,7 +349,7 @@
             // epochsLabel
             // 
             this.epochsLabel.AutoSize = true;
-            this.epochsLabel.Location = new System.Drawing.Point(219, 193);
+            this.epochsLabel.Location = new System.Drawing.Point(219, 187);
             this.epochsLabel.Name = "epochsLabel";
             this.epochsLabel.Size = new System.Drawing.Size(46, 13);
             this.epochsLabel.TabIndex = 28;
@@ -354,11 +357,11 @@
             // 
             // epochsInput
             // 
-            this.epochsInput.Location = new System.Drawing.Point(191, 212);
+            this.epochsInput.Location = new System.Drawing.Point(191, 204);
             this.epochsInput.Name = "epochsInput";
             this.epochsInput.Size = new System.Drawing.Size(110, 20);
             this.epochsInput.TabIndex = 27;
-            this.epochsInput.Text = "10000";
+            this.epochsInput.Text = "1";
             // 
             // saveNetworkButton
             // 
@@ -380,12 +383,43 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(774, 16);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(127, 27);
+            this.button2.TabIndex = 31;
+            this.button2.Text = "Auto-Train";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Visible = false;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(209, 230);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(68, 13);
+            this.label1.TabIndex = 33;
+            this.label1.Text = "Sample Size:";
+            // 
+            // sampleSizeTextBox
+            // 
+            this.sampleSizeTextBox.Location = new System.Drawing.Point(191, 247);
+            this.sampleSizeTextBox.Name = "sampleSizeTextBox";
+            this.sampleSizeTextBox.Size = new System.Drawing.Size(110, 20);
+            this.sampleSizeTextBox.TabIndex = 32;
+            this.sampleSizeTextBox.Text = "5000";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(913, 325);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.sampleSizeTextBox);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.saveNetworkButton);
             this.Controls.Add(this.epochsLabel);
@@ -462,6 +496,9 @@
         private System.Windows.Forms.TextBox epochsInput;
         private System.Windows.Forms.Button saveNetworkButton;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox sampleSizeTextBox;
     }
 }
 

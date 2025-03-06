@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Security;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace CS_NEA_Interactive
 {
@@ -119,14 +114,15 @@ namespace CS_NEA_Interactive
         //}
 
 
-        public void TrainBetter(List<double[]> trainingInputs, List<double[]> trainingOutputs, int epochs, Action<int> setImage)
+        public void TrainBetter(List<double[]> trainingInputs, List<double[]> trainingOutputs, int epochs, int sampleSize, Action<int> setImage, bool imagesIncluded)
         {
             for (int i = 0; i < epochs; i++)
             {
                 List<double[]> trainingInputsTemp = new List<double[]>(trainingInputs);
                 List<double[]> trainingOutputsTemp = new List<double[]>(trainingOutputs);
+                int originalCount = trainingInputsTemp.Count;
 
-                while (trainingInputsTemp.Count > 0)
+                while (trainingInputsTemp.Count > originalCount - sampleSize)
                 {
                     //randomly selects image from training data array
                     //then puts corresponding bitmap to picture box
@@ -134,7 +130,10 @@ namespace CS_NEA_Interactive
                     //then removes image from array
                     //all loops until all images have been used and resets for next epoch
                     int choice = RNG.Next(trainingInputsTemp.Count);
+                    if (imagesIncluded)
+                    {
                     setImage(choice);
+                    }
                     FeedForward(trainingInputsTemp[choice]);
                     BackPropagate(trainingOutputsTemp[choice]);
                     trainingInputsTemp.RemoveAt(choice);

@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ProgressBar;
 
 namespace CS_NEA_Interactive
 {
@@ -24,11 +16,11 @@ namespace CS_NEA_Interactive
         int inputLength;
         double learningRate;
 
-        List<double[]> trainingInputs;
-        List<double[]> trainingOutputs;
-        List<double[]> testingInputs;
-        List<double[]> testingOutputs;
-        public List<String> imageLocations;
+        List<double[]> trainingInputs = null;
+        List<double[]> trainingOutputs = null;
+        List<double[]> testingInputs = null;
+        List<double[]> testingOutputs = null;
+        public List<String> imageLocations = null;
 
         //for user input
         public MemoryStream memory = new MemoryStream();
@@ -38,7 +30,7 @@ namespace CS_NEA_Interactive
         public Graphics g;
         public Graphics graphic;
 
-        public Pen pen = new Pen(Color.Black, 20);
+        public Pen pen = new Pen(Color.Black, 25);
 
         public Bitmap image;
         public Bitmap resized;
@@ -100,6 +92,7 @@ namespace CS_NEA_Interactive
             MNISTDatasetInputPictureBox.Image = resized;
         }
 
+        //feeds user input through the network
         private void button1_Click(object sender, EventArgs e)
         {
             userInputArray = new double[784];
@@ -117,20 +110,20 @@ namespace CS_NEA_Interactive
                     }
                 }
                 //then passes the array thru the network and shows the outputs
-                if (mnistBinCheckbox.Checked)
+                if (mnistBinCheckbox.Checked || mnistQuadCheckbox.Checked || mnistFullCheckbox.Checked)
                 {
                     double[] outputs = myNetwork.FeedForward(userInputArray);
+
                     Console.WriteLine("outputs:");
-                    Console.WriteLine($"{outputs[0]} {outputs[1]}");
-                }
-                else if (mnistQuadCheckbox.Checked)
-                {
-                    double[] outputs = myNetwork.FeedForward(userInputArray);
-                    Console.WriteLine("outputs:");
-                    Console.WriteLine($"{outputs[0]} {outputs[1]} {outputs[2]} {outputs[3]}");
+                    for (int j = 0; j < outputs.Length; j++)
+                    {
+                        Console.Write($"{outputs[j]} ");
+                    }
+                    Console.WriteLine();
+                    return;
                 }
             }
-            catch { }
+            catch { return; }
         }
 
         private void reloadTrainingImagesButton_Click(object sender, EventArgs e)
@@ -180,6 +173,20 @@ namespace CS_NEA_Interactive
                 layout = Array.ConvertAll(netLayoutInput.Text.Split(','), s=> int.Parse(s));
                 inputLength = int.Parse(inputLengthInput.Text);
                 learningRate = double.Parse(learnRateInput.Text);
+                if (mnistBinCheckbox.Checked || mnistQuadCheckbox.Checked)
+                {
+                    if (inputLength != 784)
+                    {
+                        Console.WriteLine("Warning: Input length must be 784 to train on MNIST dataset");
+                    }
+                }
+                if (xorGateCheckbox.Checked || andGateCheckbox.Checked)
+                {
+                    if (inputLength != 2)
+                    {
+                        Console.WriteLine("Warning: Input length must be 2 to emulate logic gate");
+                    }
+                }
                 myNetwork = new Network(r, layout, inputLength, learningRate);
             }
             catch
@@ -287,6 +294,15 @@ namespace CS_NEA_Interactive
                 testingInputs = LoadMnistInputsQuad(false);
                 testingOutputs = LoadMnistOutputsQuad(false);
             }
+            else if (mnistFullCheckbox.Checked)
+            {
+                trainingInputs = LoadMnistInputsFull(true);
+                trainingOutputs = LoadMnistOutputsFull(true);
+                Console.WriteLine("Loading Testing Data...");
+                testingInputs = LoadMnistInputsFull(false);
+                testingOutputs = LoadMnistOutputsFull(false);
+            }
+            Console.WriteLine($"Training Dataset Size: {trainingInputs.Count}");
             Console.WriteLine("Finished");
         }
 
@@ -294,8 +310,24 @@ namespace CS_NEA_Interactive
         {
             Console.WriteLine("Training...");
             int epochs = int.Parse(epochsInput.Text);
-            myNetwork.TrainBetter(trainingInputs, trainingOutputs, epochs, setImage);
+            int sampleSize = int.Parse(sampleSizeTextBox.Text);
+            if (andGateCheckbox.Checked || xorGateCheckbox.Checked)
+            {
+                myNetwork.TrainBetter(trainingInputs, trainingOutputs, epochs, sampleSize, setImage, false);
+            }
+            else
+            {
+                myNetwork.TrainBetter(trainingInputs, trainingOutputs, epochs, sampleSize, setImage, true);
+            }
             Console.WriteLine("Finished");
+            try
+            {
+                
+            }
+            catch
+            {
+                Console.WriteLine("Invalid network for training on this model / dataset");
+            }
         }
 
         private void networkTestButton_Click(object sender, EventArgs e)
@@ -319,7 +351,7 @@ namespace CS_NEA_Interactive
                     }
                 }
             }
-            else if (mnistBinCheckbox.Checked)
+            else if (mnistBinCheckbox.Checked || mnistQuadCheckbox.Checked || mnistFullCheckbox.Checked)
             {
                 //selects random point in the testing data to start and feeds thru the ten proceding inputs
                 int startPoint = r.Next(testingInputs.Count-10);
@@ -327,22 +359,35 @@ namespace CS_NEA_Interactive
                 for (int i = startPoint; i < startPoint + 10; i++)
                 {
                     double[] outputs = myNetwork.FeedForward(testingInputs[i]);
-                    Console.WriteLine($"{testingOutputs[i][0]} {testingOutputs[i][1]}");
-                    Console.WriteLine($"{outputs[0]} {outputs[1]}");
+                    for (int j = 0; j < testingOutputs[0].Length; j++)
+                    {
+                        Console.Write($"{testingOutputs[i][j]} ");
+                    }
+                    Console.WriteLine();
+                    for (int j = 0; j < testingOutputs[0].Length; j++)
+                    {
+                        Console.Write($"{outputs[j]} ");
+                    }
+                    Console.WriteLine();
+
+
+
+                    //Console.WriteLine($"{testingOutputs[i][0]} {testingOutputs[i][1]}");
+                    //Console.WriteLine($"{outputs[0]} {outputs[1]}");
                 }
             }
-            else if (mnistQuadCheckbox.Checked)
-            {
-                //selects random point in the testing data to start and feeds thru the ten proceding inputs
-                int startPoint = r.Next(testingInputs.Count - 10);
-                Console.WriteLine("sample outputs:");
-                for (int i = startPoint; i < startPoint + 10; i++)
-                {
-                    double[] outputs = myNetwork.FeedForward(testingInputs[i]);
-                    Console.WriteLine($"{testingOutputs[i][0]} {testingOutputs[i][1]} {testingOutputs[i][2]} {testingOutputs[i][3]}");
-                    Console.WriteLine($"{outputs[0]} {outputs[1]} {outputs[2]} {outputs[3]}");
-                }
-            }
+            //else if (mnistQuadCheckbox.Checked)
+            //{
+            //    //selects random point in the testing data to start and feeds thru the ten proceding inputs
+            //    int startPoint = r.Next(testingInputs.Count - 10);
+            //    Console.WriteLine("sample outputs:");
+            //    for (int i = startPoint; i < startPoint + 10; i++)
+            //    {
+            //        double[] outputs = myNetwork.FeedForward(testingInputs[i]);
+            //        Console.WriteLine($"{testingOutputs[i][0]} {testingOutputs[i][1]} {testingOutputs[i][2]} {testingOutputs[i][3]}");
+            //        Console.WriteLine($"{outputs[0]} {outputs[1]} {outputs[2]} {outputs[3]}");
+            //    }
+            //}
         }
 
         private void saveNetworkButton_Click(object sender, EventArgs e)
@@ -350,6 +395,7 @@ namespace CS_NEA_Interactive
             //if the network exists, passes file path to the save method
             if (myNetwork != null)
             {
+                Console.WriteLine("Saved");
                 myNetwork.SaveNetworkToFile(networkFilePathInput.Text);
             }
         }
@@ -361,11 +407,11 @@ namespace CS_NEA_Interactive
             //selects wanted csv file
             if (trainNotTest)
             {
-                sr = new StreamReader("mnist_train.csv");
+                sr = new StreamReader("/mnist_train.csv");
             }
             else
             {
-                sr = new StreamReader("mnist_test.csv");
+                sr = new StreamReader("/mnist_test.csv");
             }
             sr.ReadLine();
             //loops thru every line of the csv
@@ -381,7 +427,7 @@ namespace CS_NEA_Interactive
                     double[] datapoint = new double[arr.Length - 1];
                     for (int i = 1; i < arr.Length; i++)
                     {
-                        datapoint[i - 1] = arr[i];
+                        datapoint[i - 1] = arr[i] / 256;
                     }
                     dataset.Add(datapoint);
                 }
@@ -401,11 +447,11 @@ namespace CS_NEA_Interactive
             //selects wanted csv file
             if (trainNotTest)
             {
-                sr = new StreamReader("mnist_train.csv");
+                sr = new StreamReader("/mnist_train.csv");
             }
             else
             {
-                sr = new StreamReader("mnist_test.csv");
+                sr = new StreamReader("/mnist_test.csv");
             }
             sr.ReadLine();
             //loops thru every line of the csv
@@ -444,11 +490,11 @@ namespace CS_NEA_Interactive
             //selects wanted csv file
             if (trainNotTest)
             {
-                sr = new StreamReader("mnist_train.csv");
+                sr = new StreamReader("/mnist_train.csv");
             }
             else
             {
-                sr = new StreamReader("mnist_test.csv");
+                sr = new StreamReader("/mnist_test.csv");
             }
             sr.ReadLine();
             //loops thru every line of the csv
@@ -464,7 +510,7 @@ namespace CS_NEA_Interactive
                     double[] datapoint = new double[arr.Length - 1];
                     for (int i = 1; i < arr.Length; i++)
                     {
-                        datapoint[i - 1] = arr[i];
+                        datapoint[i - 1] = arr[i] / 256;
                     }
                     dataset.Add(datapoint);
                 }
@@ -485,11 +531,11 @@ namespace CS_NEA_Interactive
             //selects corresponding csv file for training / testing
             if (trainNotTest)
             {
-                sr = new StreamReader("mnist_train.csv");
+                sr = new StreamReader("/mnist_train.csv");
             }
             else
             {
-                sr = new StreamReader("mnist_test.csv");
+                sr = new StreamReader("/mnist_test.csv");
             }
             sr.ReadLine();
             //loops thru every line of the csv
@@ -533,6 +579,116 @@ namespace CS_NEA_Interactive
             return outputs;
         }
 
+        List<double[]> LoadMnistInputsFull(bool trainNotTest)
+        {
+            List<double[]> dataset = new List<double[]>();
+            StreamReader sr;
+            //selects wanted csv file
+            if (trainNotTest)
+            {
+                sr = new StreamReader("/mnist_train.csv");
+            }
+            else
+            {
+                sr = new StreamReader("/mnist_test.csv");
+            }
+            sr.ReadLine();
+            //loops thru every line of the csv
+            while (!sr.EndOfStream)
+            {
+                //each line has 785 values, the first tells you what number is being represented,
+                //the others correspond to the pixel values of the image (28x28 image means 784 pixels)
+                //only selects data corresponding to the numbers we want
+                //then adds the image file path and the pixel data
+                double[] arr = Array.ConvertAll(sr.ReadLine().Split(','), double.Parse);
+                double[] datapoint = new double[arr.Length - 1];
+                for (int i = 1; i < arr.Length; i++)
+                {
+                    datapoint[i - 1] = arr[i] / 256;
+                }
+                dataset.Add(datapoint);
+            }
+            return dataset;
+        }
+        List<double[]> LoadMnistOutputsFull(bool trainNotTest)
+        {
+            int count = 0;
+            if (trainNotTest)
+            {
+                // if training create new list for all the image locations
+                imageLocations = new List<string>();
+            }
+            List<double[]> outputs = new List<double[]>();
+            StreamReader sr;
+            //selects corresponding csv file for training / testing
+            if (trainNotTest)
+            {
+                sr = new StreamReader("/mnist_train.csv");
+            }
+            else
+            {
+                sr = new StreamReader("/mnist_test.csv");
+            }
+            sr.ReadLine();
+            //loops thru every line of the csv
+            while (!sr.EndOfStream)
+            {
+                //each line has 785 values, the first tells you what number is being represented,
+                //the others correspond to the pixel values of the image (28x28 image means 784 pixels)
+                //only selects data corresponding to the numbers we want
+                //then adds the image file path and the output
+                double[] arr = Array.ConvertAll(sr.ReadLine().Split(','), double.Parse);
+                if (trainNotTest)
+                {
+                    imageLocations.Add($"{arr[0]}/trainingImage{count}.Bmp");
+                }
+                if (arr[0] == 0)
+                {
+                    outputs.Add(new double[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+                }
+                else if (arr[0] == 1)
+                {
+                    outputs.Add(new double[] { 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 });
+                }
+                else if (arr[0] == 2)
+                {
+                    outputs.Add(new double[] { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 }); 
+                }
+                else if (arr[0] == 3)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0 }); 
+                }
+                else if (arr[0] == 4)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 }); 
+                }
+                else if (arr[0] == 5)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 }); 
+                }
+                else if (arr[0] == 6)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 }); 
+                }
+                else if (arr[0] == 7)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 }); 
+                }
+                else if (arr[0] == 8)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 }); 
+                }
+                else if (arr[0] == 9)
+                {
+                    outputs.Add(new double[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }); 
+                }
+                count++;
+            }
+            return outputs;
+        }
+
+
+
         private void learnRateInput_TextChanged(object sender, EventArgs e)
         {
             try
@@ -554,5 +710,36 @@ namespace CS_NEA_Interactive
             MNISTDatasetInputPictureBox.Refresh();
         }
 
+        private void button2_Click(object sender, EventArgs e)
+        {
+            while (true)
+            {
+                int epochs = int.Parse(epochsInput.Text);
+                int sampleSize = int.Parse(sampleSizeTextBox.Text);
+                //myNetwork.TrainBetter(trainingInputs, trainingOutputs, epochs, sampleSize, setImage);
+
+                int startPoint = r.Next(testingInputs.Count - 10);
+                double[] outputs = myNetwork.FeedForward(testingInputs[startPoint]);
+                double out0 = outputs[0];
+                double out1 = outputs[1];
+                double out2 = outputs[2];
+                double out3 = outputs[3];
+
+                startPoint = r.Next(testingInputs.Count - 10);
+                outputs = myNetwork.FeedForward(testingInputs[startPoint]);
+
+                Console.WriteLine($"{out0} {out1} {out2} {out3}");
+                Console.WriteLine($"{outputs[0]} {outputs[1]} {outputs[2]} {outputs[3]}");
+
+                if (Math.Abs(out0 - outputs[0]) > 0.1 || Math.Abs(out1 - outputs[1]) > 0.1 || Math.Abs(out2 - outputs[2]) > 0.1 || Math.Abs(out3 - outputs[3]) > 0.1)
+                {
+                    return;
+                }
+                //layout = Array.ConvertAll(netLayoutInput.Text.Split(','), s => int.Parse(s));
+                //inputLength = int.Parse(inputLengthInput.Text);
+                //learningRate = double.Parse(learnRateInput.Text);
+                //myNetwork = new Network(r, layout, inputLength, learningRate);
+            }
+        }
     }
 }
